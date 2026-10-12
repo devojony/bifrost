@@ -568,6 +568,8 @@ func TestWarpLogsLinkPerFilterArgument(t *testing.T) {
 		"user_agents":           {arg: []any{agent, "curl/8.0"}, array: []string{agent, "curl/8.0"}},
 		"metadata_filters":      {arg: map[string]any{"env": "prod", "app": "web"}, want: `{"app":"web","env":"prod"}`},
 		"session_id":            {arg: "sess-1", want: "sess-1"},
+		"agent_names":           {arg: []any{"triage-bot", "billing-bot"}, want: "triage-bot,billing-bot"},
+		"agent_correlation_id":  {arg: "corr-1", want: "corr-1"},
 		"request_id":            {arg: "req-1", want: "req-1"},
 		"parent_request_id":     {arg: "req-0", want: "req-0"},
 		"missing_cost_only":     {arg: true, want: "true"},

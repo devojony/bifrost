@@ -209,6 +209,8 @@ const FilterSchema = `{
     "user_agents": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "maxItems": 50, "description": "Raw User-Agent strings. Prefer apps, which groups them."},
     "metadata_filters": {"type": "object", "additionalProperties": {"type": "string"}, "minProperties": 1, "description": "Request metadata, as key to value, e.g. {\"env\": \"prod\"}. Every pair must match. Keys and values that occur are listed by describe_filter_space (metadata)."},
     "session_id": {"type": "string", "minLength": 1, "description": "Exact Bifrost session id."},
+    "agent_names": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "maxItems": 50, "description": "Names of registered Agents; matches the LLM requests their context ids correlate. Not free text - use the Agent's registered name."},
+    "agent_correlation_id": {"type": "string", "minLength": 1, "description": "Exact caller-supplied agent correlation id (x-bf-agent-correlation-id)."},
     "request_id": {"type": "string", "minLength": 1, "description": "Exact request id."},
     "parent_request_id": {"type": "string", "minLength": 1, "description": "Requests spawned by this request, e.g. the fallback attempts of one call."},
     "missing_cost_only": {"type": "boolean", "description": "Only successful requests whose cost could not be computed."},
@@ -257,7 +259,7 @@ func parseFilters(raw map[string]any, now time.Time) (*logstore.SearchFilters, e
 		"routing_rule_ids": true, "routing_engine_used": true, "selected_key_ids": true, "aliases": true,
 		"complexity_tiers": true, "complexity_mechanisms": true, "tool_call_names": true, "user_agents": true,
 		"metadata_filters": true, "session_id": true, "request_id": true, "parent_request_id": true,
-		"missing_cost_only": true,
+		"agent_names": true, "agent_correlation_id": true, "missing_cost_only": true,
 	}
 	unknown := []string{}
 	for key := range raw {
@@ -322,6 +324,7 @@ func parseFilters(raw map[string]any, now time.Time) (*logstore.SearchFilters, e
 		"selected_key_ids": &filters.SelectedKeyIDs, "aliases": &filters.Aliases,
 		"complexity_tiers": &filters.ComplexityTiers, "complexity_mechanisms": &filters.ComplexityMechanisms,
 		"tool_call_names": &filters.ToolCallNames, "user_agents": &filters.UserAgents,
+		"agent_names": &filters.AgentNames,
 	} {
 		values, err := stringSliceField(raw, key)
 		if err != nil {
@@ -350,6 +353,7 @@ func parseFilters(raw map[string]any, now time.Time) (*logstore.SearchFilters, e
 	}
 	for key, target := range map[string]*string{
 		"session_id": &filters.SessionID, "request_id": &filters.RequestID, "parent_request_id": &filters.ParentRequestID,
+		"agent_correlation_id": &filters.AgentCorrelationID,
 	} {
 		value, err := exactStringField(raw, key)
 		if err != nil {
